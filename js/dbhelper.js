@@ -1,14 +1,17 @@
 /**
  * Common database helper functions.
  */
-let dbPromise = idb.open('restaurant-db', 1, function(upgradeDb) {
+let dbPromise = idb.open('restaurant-db', 2, function(upgradeDb) {
   switch(upgradeDb.oldVersion) {
   case 0:
     var keyValStore = upgradeDb.createObjectStore('restaurants', { keyPath: 'id' });
+  case 1:
+    var reviewStore = upgradeDb.createObjectStore('reviews', { keyPath: 'id' });
+    reviewStore.createIndex('reviewByRestaurantId', 'restaurant_id');
   }
 });
 
-function storeAllValues(data){
+function storeRestaurantValues(data){
   return dbPromise.then(function(db) {
     var tx = db.transaction('restaurants', 'readwrite');
     var restaurantsStore = tx.objectStore('restaurants');
@@ -21,13 +24,46 @@ function storeAllValues(data){
   });
 }
 
-function getAllValues(){
+function getRestaurantValues(){
   return dbPromise.then(function(db) {
     var tx = db.transaction('restaurants');
     var restaurantsStore = tx.objectStore('restaurants');
 
     return restaurantsStore.getAll();
   });
+}
+
+function storeReviewValues(data){
+  return dbPromise.then(function(db) {
+    var tx = db.transaction('reviews', 'readwrite');
+    var reviewsStore = tx.objectStore('reviews');
+
+    data.forEach(value => reviewsStore.put(value));
+
+    return tx.complete;
+  }).then(function() {
+    // console.log('All data added');
+  });
+}
+
+function getReviewValues(){
+  return dbPromise.then(function(db) {
+    var tx = db.transaction('reviews');
+    var reviewsStore = tx.objectStore('reviews');
+
+    return reviewsStore.getAll();
+  });
+}
+
+function getReviewByIdValues(id){
+  return dbPromise.then(function(db) {
+    var tx = db.transaction('reviews');
+    var reviewsStore = tx.objectStore('reviews');
+    var reviewsIndex = reviewsStore.index('reviewByRestaurantId');
+
+    // console.log('getReviewByIdValues: id - '+id);
+    return reviewsIndex.getAll(parseInt(id));
+  })
 }
 
 class DBHelper {
@@ -47,33 +83,21 @@ class DBHelper {
     // return `/restaurants`;
   }
 
+  static get SERVER_API_REVIEWS_URL() {
+    const port = 1337; // Change this to your server port
+    return `http://localhost:${port}/reviews`;
+  }
+
+  static get SERVER_API_REVIEWS_BY_RESTAURANT_URL() {
+    const port = 1337; // Change this to your server port
+    return `http://localhost:${port}/reviews/?restaurant_id=`;
+  }
+
   /**
    * Fetch all restaurants.
    */
-  // static fetchRestaurants(callback) {
-  //   let xhr = new XMLHttpRequest();
-  //   xhr.open('GET', DBHelper.SERVER_API_URL);
-  //   xhr.onload = () => {
-  //     // console.log("loaded");
-  //     // console.log(xhr);
-  //     if (xhr.status === 200) { // Got a success response from server!
-  //       const json = JSON.parse(xhr.responseText);
-  //       const restaurants = json;
-  //       callback(null, restaurants);
-  //     } else { // Oops!. Got an error from server.
-  //       const error = (`Request failed. Returned status of ${xhr.status}`);
-  //       callback(error, null);
-  //     }
-  //   };
-  //   xhr.onerror = () => {
-  //     console.log('error');
-  //     console.log(xhr);
-  //   };
-  //   xhr.send();
-  // }
-
   static fetchRestaurants(callback) {
-    getAllValues().then(function(values){
+    getRestaurantValues().then(function(values){
       if (values.length > 0) {
         // console.log('values found');
         // console.log(values);
@@ -85,11 +109,42 @@ class DBHelper {
           // console.log('fetch OK');
           return response.json();
         }).then(function(data){
-          storeAllValues(data);
+          storeRestaurantValues(data);
           if (values.length <= 0){
             // console.log('callback inside fetch OK')
             const restaurants = data;
             callback(null, restaurants);
+          }
+        }).catch(function(responseError){
+          if(values.length <= 0){
+            const error = (`Request failed with error: ${responseError}`);
+            callback(error, null);
+          }
+        });
+    });
+  }
+
+  /**
+   * Fetch Review By id
+   */
+  static fetchReviewById(id, callback) {
+    getReviewByIdValues(id).then(function(values){
+      if (values.length > 0) {
+        // console.log('reviews found');
+        // console.log(values);
+        const reviews = values;
+        callback(null, reviews);
+      }
+      fetch(DBHelper.SERVER_API_REVIEWS_BY_RESTAURANT_URL+id)
+        .then(function(response){
+          // console.log('review fetch OK');
+          return response.json();
+        }).then(function(data){
+          storeReviewValues(data);
+          if (values.length <= 0){
+            // console.log('review callback inside fetch OK');
+            const reviews = data;
+            callback(null, reviews);
           }
         }).catch(function(responseError){
           if(values.length <= 0){
@@ -117,6 +172,8 @@ class DBHelper {
         }
       }
     });
+    //TODO Attenzione bisogna passare una callback valida
+    DBHelper.fetchReviewById(id, function(){});
   }
 
   /**

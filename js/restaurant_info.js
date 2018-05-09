@@ -1,4 +1,4 @@
-let restaurant;
+let restaurant, reviews;
 var map;
 
 /**
@@ -33,14 +33,29 @@ fetchRestaurantFromURL = (callback) => {
     error = 'No restaurant id in URL'
     callback(error, null);
   } else {
+    // DBHelper.fetchRestaurantById(id, (error, restaurant) => {
+    //   self.restaurant = restaurant;
+    //   if (!restaurant) {
+    //     console.error(error);
+    //     return;
+    //   }
+    //   fillRestaurantHTML();
+    //   callback(null, restaurant)
+    // });
     DBHelper.fetchRestaurantById(id, (error, restaurant) => {
       self.restaurant = restaurant;
       if (!restaurant) {
         console.error(error);
         return;
       }
-      fillRestaurantHTML();
-      callback(null, restaurant)
+      DBHelper.fetchReviewById(id, (error, reviews) => {
+        self.restaurant.reviews = reviews;
+        // console.log('reviews found per id - '+id);
+        // console.log(reviews);
+
+        fillRestaurantHTML();
+        callback(null, restaurant)
+      });
     });
   }
 }
@@ -125,6 +140,8 @@ fillReviewsHTML = (reviews = self.restaurant.reviews) => {
   title.innerHTML = 'Reviews';
   container.appendChild(title);
 
+  container.appendChild(createReviewsFormHTML(self.restaurant.id));
+
   if (!reviews) {
     const noReviews = document.createElement('p');
     noReviews.innerHTML = 'No reviews yet!';
@@ -149,7 +166,7 @@ createReviewHTML = (review) => {
   li.appendChild(name);
 
   const date = document.createElement('p');
-  date.innerHTML = review.date;
+  date.innerHTML = new Date(review.updatedAt*1000);
   date.setAttribute('tabindex', '0');
   li.appendChild(date);
 
@@ -164,6 +181,58 @@ createReviewHTML = (review) => {
   li.appendChild(comments);
 
   return li;
+}
+
+createReviewsFormHTML = (idRestaurant) => {
+  const div = document.createElement('div');
+  div.setAttribute('class', 'reviews-form');
+
+  const form = document.createElement('form');
+  form.setAttribute('id', 'restaurand_id-'+idRestaurant);
+
+  const nameL = document.createElement('label');
+  nameL.setAttribute('for', 'name');
+  nameL.innerHTML = 'Your Name';
+  form.appendChild(nameL);
+
+  const nameI = document.createElement('input');
+  nameI.setAttribute('type', 'text');
+  nameI.setAttribute('name', 'name');
+  form.appendChild(nameI);
+
+  const ratingL = document.createElement('label');
+  ratingL.setAttribute('for', 'rating');
+  ratingL.innerHTML = 'Your Rating';
+  form.appendChild(ratingL);
+
+  for (let i=1; i<6; i++){
+    let ratingI = document.createElement('input');
+    ratingI.setAttribute('type', 'radio');
+    ratingI.setAttribute('name', 'rating');
+    ratingI.setAttribute('value', i);    
+    form.appendChild(ratingI);
+    let spanRating = document.createElement('span');
+    spanRating.innerHTML = i;
+    form.appendChild(spanRating);
+  }
+
+  const commentsL = document.createElement('label');
+  commentsL.setAttribute('for', 'comments');
+  commentsL.innerHTML = 'Your Comments';
+  form.appendChild(commentsL);
+
+  const commentsI = document.createElement('input');
+  commentsI.setAttribute('type', 'text');
+  commentsI.setAttribute('name', 'comments');
+  form.appendChild(commentsI);
+
+  const button = document.createElement('button');
+  button.innerHTML = 'Submit';
+  //TODO add eventHandler on click
+  form.appendChild(button);
+
+  div.appendChild(form);
+  return div;
 }
 
 /**
