@@ -63,7 +63,7 @@ function getReviewByIdValues(id){
 
     // console.log('getReviewByIdValues: id - '+id);
     return reviewsIndex.getAll(parseInt(id));
-  })
+  });
 }
 
 class DBHelper {
@@ -85,7 +85,7 @@ class DBHelper {
 
   static get SERVER_API_REVIEWS_URL() {
     const port = 1337; // Change this to your server port
-    return `http://localhost:${port}/reviews`;
+    return `http://localhost:${port}/reviews/`;
   }
 
   static get SERVER_API_REVIEWS_BY_RESTAURANT_URL() {
@@ -132,7 +132,7 @@ class DBHelper {
       if (values.length > 0) {
         // console.log('reviews found');
         // console.log(values);
-        const reviews = values;
+        const reviews = values.reverse();
         callback(null, reviews);
       }
       fetch(DBHelper.SERVER_API_REVIEWS_BY_RESTAURANT_URL+id)
@@ -143,7 +143,8 @@ class DBHelper {
           storeReviewValues(data);
           if (values.length <= 0){
             // console.log('review callback inside fetch OK');
-            const reviews = data;
+            // console.log(data);
+            const reviews = data.reverse();
             callback(null, reviews);
           }
         }).catch(function(responseError){

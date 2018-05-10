@@ -159,6 +159,8 @@ fillReviewsHTML = (reviews = self.restaurant.reviews) => {
  * Create review HTML and add it to the webpage.
  */
 createReviewHTML = (review) => {
+  // console.log('createReviewHTML:');
+  // console.log(review);
   const li = document.createElement('li');
   const name = document.createElement('p');
   name.innerHTML = review.name;
@@ -180,6 +182,9 @@ createReviewHTML = (review) => {
   comments.setAttribute('tabindex', '0');
   li.appendChild(comments);
 
+  // console.log('review html:');
+  // console.log(li);
+
   return li;
 }
 
@@ -189,6 +194,10 @@ createReviewsFormHTML = (idRestaurant) => {
 
   const form = document.createElement('form');
   form.setAttribute('id', 'restaurand_id-'+idRestaurant);
+  form.setAttribute('name', 'reviewform');
+  form.setAttribute('method', 'POST');
+  form.setAttribute('action', DBHelper.SERVER_API_REVIEWS_URL);
+  form.setAttribute('enctype', 'multipart/form-data');
 
   const nameL = document.createElement('label');
   nameL.setAttribute('for', 'name');
@@ -209,7 +218,7 @@ createReviewsFormHTML = (idRestaurant) => {
     let ratingI = document.createElement('input');
     ratingI.setAttribute('type', 'radio');
     ratingI.setAttribute('name', 'rating');
-    ratingI.setAttribute('value', i);    
+    ratingI.setAttribute('value', i);
     form.appendChild(ratingI);
     let spanRating = document.createElement('span');
     spanRating.innerHTML = i;
@@ -226,13 +235,57 @@ createReviewsFormHTML = (idRestaurant) => {
   commentsI.setAttribute('name', 'comments');
   form.appendChild(commentsI);
 
-  const button = document.createElement('button');
-  button.innerHTML = 'Submit';
-  //TODO add eventHandler on click
+  const button = document.createElement('input');
+  button.setAttribute('type', 'submit');
+  button.innerHTML = 'Send';
+  form.addEventListener("submit", function(event){sendData(event,idRestaurant);});
   form.appendChild(button);
 
   div.appendChild(form);
   return div;
+}
+
+sendData = (event, idRestaurant) => {
+  let formData = new FormData(document.querySelector('#restaurand_id-'+idRestaurant));
+  formData.append('createdAt', parseInt(Date.now()));
+  formData.append('updatedAt', parseInt(Date.now()));
+  formData.append('restaurant_id', parseInt(idRestaurant));
+  // for (var value of formData.values()) {
+  //   console.log(typeof(value) + ': ' + value);
+  // }
+
+  let jsonData = {};
+  formData.forEach(function(value, key){
+    if (key == 'name' || key == 'comments'){
+      jsonData[key] = value;
+    }else{
+      jsonData[key] = parseInt(value);
+    }
+  });
+
+  let body = JSON.stringify(jsonData);
+  event.preventDefault();
+
+  fetch(DBHelper.SERVER_API_REVIEWS_URL, {
+    method: 'POST',
+    headers: {
+      'Content-Length': body.length,
+      'Content-Type': 'application/json'
+    },
+    body: body
+  }).then(function(response){
+    return response.text();
+  }).then(function(data){
+    // console.log(data);
+    // console.log('after parsing');
+    // console.log(JSON.parse(data));
+    // location.reload();
+    document.getElementById('restaurand_id-'+idRestaurant).reset();
+    let ul = document.getElementById('reviews-list');
+    // ul.appendChild(createReviewHTML(JSON.parse(data)));
+    ul.insertBefore(createReviewHTML(JSON.parse(data)), ul.firstChild);
+  });
+
 }
 
 /**

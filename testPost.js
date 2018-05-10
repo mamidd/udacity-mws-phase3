@@ -7,6 +7,14 @@ let body = JSON.stringify({
   'rating': 1,
   'comments': 'my comment test 10'
 });
+// let body = JSON.stringify({
+//   "restaurant_id":"2",
+//   "name":"mario nome inviato",
+//   "rating":"3",
+//   "comments":"commenti inviati",
+//   "createdAt":"1525974392219",
+//   "updatedAt":"1525974392219",
+// });
 fetch('http://localhost:1337/reviews/', {
   method: 'POST',
   headers: {
@@ -21,7 +29,7 @@ fetch('http://localhost:1337/reviews/', {
   console.log(data);
 });
 
-let reviewToDelete = 30;
+let reviewToDelete = 56;
 fetch('http://localhost:1337/reviews/'+reviewToDelete, {
   method: 'DELETE'
 }).then(function(response){
