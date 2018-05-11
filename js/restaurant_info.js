@@ -199,6 +199,10 @@ createReviewsFormHTML = (idRestaurant) => {
   form.setAttribute('action', DBHelper.SERVER_API_REVIEWS_URL);
   form.setAttribute('enctype', 'multipart/form-data');
 
+  const formTitle = document.createElement('h4');
+  formTitle.innerHTML = 'Review the Restaurant';
+  form.appendChild(formTitle);
+
   const nameL = document.createElement('label');
   nameL.setAttribute('for', 'name');
   nameL.innerHTML = 'Your Name';
@@ -230,9 +234,9 @@ createReviewsFormHTML = (idRestaurant) => {
   commentsL.innerHTML = 'Your Comments';
   form.appendChild(commentsL);
 
-  const commentsI = document.createElement('input');
-  commentsI.setAttribute('type', 'text');
+  const commentsI = document.createElement('textarea');
   commentsI.setAttribute('name', 'comments');
+  commentsI.setAttribute('rows', '3');
   form.appendChild(commentsI);
 
   const button = document.createElement('input');
@@ -282,8 +286,13 @@ sendData = (event, idRestaurant) => {
     // location.reload();
     document.getElementById('restaurand_id-'+idRestaurant).reset();
     let ul = document.getElementById('reviews-list');
-    // ul.appendChild(createReviewHTML(JSON.parse(data)));
     ul.insertBefore(createReviewHTML(JSON.parse(data)), ul.firstChild);
+  }).catch(function(errorResponse){
+    // console.log('fetch failed');
+    storeReviewDefer(JSON.parse(body));
+    document.getElementById('restaurand_id-'+idRestaurant).reset();
+    let ul = document.getElementById('reviews-list');
+    ul.insertBefore(createReviewHTML(JSON.parse(body)), ul.firstChild);
   });
 
 }

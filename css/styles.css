@@ -255,7 +255,8 @@ nav h1 a {
 	height: 3em;
 }
 
-.restaurants-list li > a {
+.restaurants-list li > a,
+.reviews-form input[type='submit']{
   background-color: #a56900;
 	color: #fff;
   font-size: 1em;
@@ -276,7 +277,9 @@ nav h1 a {
 .filter-options select:hover,
 .filter-options select:focus,
 .breadcrumb li a:hover,
-.breadcrumb li a:focus {
+.breadcrumb li a:focus,
+.reviews-form input[type='submit']:hover,
+.reviews-form input[type='submit']:focus{
 	outline: 2px solid red;
 	-webkit-box-shadow: 2px 2px 10px 0px rgba(0,0,0,0.2), -2px -2px 10px 0px rgba(0,0,0,0.2);
 	-moz-box-shadow: 2px 2px 10px 0px rgba(0,0,0,0.2), -2px -2px 10px 0px rgba(0,0,0,0.2);
@@ -356,7 +359,7 @@ nav h1 a {
   padding: 0;
 }
 
-.reviews-list li {
+.reviews-list li, .reviews-form{
   background-color: #fff;
   border: 2px solid #f3f3f3;
   display: block;
@@ -368,6 +371,35 @@ nav h1 a {
 	-webkit-box-shadow: 1px 3px 4px 0px rgba(0,0,0,0.1), -1px 3px 4px 0px rgba(0,0,0,0.1);
 	-moz-box-shadow: 1px 3px 4px 0px rgba(0,0,0,0.1), -1px 3px 4px 0px rgba(0,0,0,0.1);
 	box-shadow: 1px 3px 4px 0px rgba(0,0,0,0.1), -1px 3px 4px 0px rgba(0,0,0,0.1);
+}
+
+.reviews-form label{
+  display: block;
+}
+
+.reviews-form span{
+  margin-right: 5px;
+}
+
+.reviews-form input{
+  margin-bottom:24px;
+}
+
+.reviews-form input[type='radio']{
+  margin-top: 5px;
+}
+
+.reviews-form input[type='text'],
+.reviews-form textarea{
+  width: 100%;
+  border: none;
+  border-bottom: 1px solid;
+  font-size: 1.3em;
+}
+
+.reviews-form input[type='submit']{
+  width: 100%;
+  border: none;
 }
 
 .reviews-list li p {
